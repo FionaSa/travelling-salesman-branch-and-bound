@@ -2,6 +2,26 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#include <string.h>
+
+int size;
+
+int result;
+
+int *finalpath;
+
+int **adjmat;
+
+void treeprint(struct Node_s *root, int level)
+{
+    if (root == NULL)
+        return;
+    for (int i = 0; i < level; i++)
+        printf(i == level - 1 ? "\e[0;33m|-" : "  ");
+    printf("\e[0;36m%d|%d\n", root->cost,root->level);
+    treeprint(root->left, level + 1);
+    treeprint(root->right, level + 1);
+}
 
 int cost(int **mat)
 {
@@ -64,10 +84,10 @@ int cost(int **mat)
 
 void printpath(int *path)
 {
-    printf("Path = \n");
+    printf("\n\e[0;36mPath = \n");
 
     for (int i = 0; i < size; i++)
-        printf("%d ", path[i]);
+        printf("\e[0;35m%d ", path[i]);
 
     printf("\n");
 }
@@ -90,7 +110,7 @@ void createnode(struct Node_s *root, struct Node_s *node, int **mat, int *path, 
 
     if (lvl)
     {
-        printf("%d -> %d\n", rowdiag, coldiag);
+        // printf("%d -> %d\n", rowdiag, coldiag);
         node->path[lvl] = coldiag;
         for (int i = 0; i < size; i++)
         {
@@ -234,12 +254,20 @@ int resolve(int **mat)
     {
         struct Node_s *min;
         min = searchmin(root);
-        printf("Min = %d %d\n", min->cost, min->level);
+        // printf("Min = %d %d\n", min->cost, min->level);
         int i = min->coldiag;
+
+        printf("\e[0;34mPrint cost | level \n");
+  
+
+        treeprint(root, 0);
+
+        printf("\e[0;31m--------\e[0m\n");
 
         if (min->level == size - 1)
         {
-            //min->path[i] = 0;
+            // min->path[i] = 0;
+            printf("\e[0;36mMinimal cost found =\n \e[0;35m%d", min->cost);
             printpath(min->path);
             return min->cost;
         }
@@ -251,7 +279,7 @@ int resolve(int **mat)
         {
             if (min->mat[i][j] != INT_MAX)
             {
-                printf("i  = %d j = %d  lvl = %d\n", i, j, min->level + 1);
+                // printf("i  = %d j = %d  lvl = %d\n", i, j, min->level + 1);
                 struct Node_s *node;
                 node = malloc(sizeof(struct Node_s));
                 createnode(root, node, min->mat, min->path, min->level + 1, i, j, (min->cost + min->mat[i][j]));
@@ -269,9 +297,63 @@ int resolve(int **mat)
     return INT_MAX;
 }
 
-int main()
+int **getconfig(char *filename)
 {
-  
+    // vars
+    FILE *fp;
+    char buffer[1024];
+    char buffer2[1024];
+    int intValue;
+    char charvalue;
+    int line = 0;
+    char dummy[1024];
 
-    return 0;
+    // open the config file
+    fp = fopen(filename, "r");
+    if (fp == NULL)
+    {
+        perror(filename);
+        abort();
+    }
+
+    // loop on lines
+
+    if (fscanf(fp, "size = %d\n", &intValue) == 1)
+    {
+        size = intValue;
+    }
+    if (fscanf(fp, "numbers %c\n", &charvalue) == 1)
+    {
+        adjmat = malloc(sizeof(int *) * size);
+
+        for (int i = 0; i < size; i++)
+        {
+            adjmat[i] = malloc(sizeof(int) * size);
+
+            for (int j = 0; j < size; j++)
+            {
+                if (fscanf(fp, "%d", &intValue) == 1)
+                    adjmat[i][j] = intValue;
+                else if (fscanf(fp, "%s", dummy) == 1)
+                {
+                    // printf("%s\n", dummy);
+                    if (strcmp(dummy, "INF") == 0)
+                        adjmat[i][j] = INT_MAX;
+                }
+                else if (fscanf(fp, " %[#]", dummy) == 1)
+                    continue;
+
+                // printf("%d %d %d\n", i, j, adjmat[i][j]);
+            }
+        }
+    }
+
+    // check error
+    if (!feof(fp))
+    {
+        perror(filename);
+        abort();
+    }
+
+    return adjmat;
 }

@@ -1,14 +1,16 @@
-
+#pragma once
 /*
  * Variables
  */
 
-int size =  5;
 
-int result;
+int extern  size ;
 
-int *finalpath;
+int extern result;
 
+int extern *finalpath;
+
+int extern **adjmat;
 
 struct Node_s
 {
@@ -21,14 +23,14 @@ struct Node_s
     struct Node_s *left, *right;
     struct Node_s  *up;
 
-}Node_t;
+};
 
 
 /*
  * Functions
  */
 
-void getconfig();
+int** getconfig();
 
 int resolve(int **mat);
 
